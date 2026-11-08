@@ -1,18 +1,32 @@
 # Private Desk · Rare Space Studio
 
-Private Desk is a local-first assistant prototype for contract review, invoice triage, and scheduling. It uses fictional records throughout. Every output is a draft for human review.
+**[Try the public demo](https://rare-space-private-desk.xbbnkwb722.chatgpt.site/)**
+
+Private Desk is a local-first assistant prototype by Rare Space Studio for contract review, invoice triage, and scheduling. The public demo uses fictional records and prewritten results. Every output is a draft for human review.
 
 ![Private Desk invoice triage in simulation mode](assets/private-desk-ui-preview.png)
 
-## Public simulation
+## What you can try
 
-[Open the interactive simulation](https://rare-space-private-desk.xbbnkwb722.chatgpt.site/).
+| Workflow | What the demo shows |
+|---|---|
+| Contract review | Flags the short termination notice, missing governing law, and unclear confidentiality duration in a fictional agreement. |
+| Invoice triage | Separates overdue, upcoming, and paid sample invoices and drafts a follow-up. |
+| Scheduling | Suggests two open slots from a fictional calendar and drafts a confirmation for review. |
 
-The static files in `docs/` reuse the dashboard and its sample outputs. Running an example displays a prewritten draft in the browser. The public site has no AI endpoint, application API, real records, credentials, external integrations, or write actions.
+All three workflows were tested on the public demo at desktop and mobile widths. The static dashboard in [`docs/`](docs/) runs in the browser without a sign-in or model service. It cannot send messages, pay invoices, or book appointments.
 
 ## Run locally in simulation mode
 
-With Node.js 22 or later, run `node app/server.mjs` from the project root. Open `http://localhost:3105` on the same computer, choose one of the three workflows, and select **Run example**. The Node server binds to loopback by default. Port 3000 is reserved for a separate project.
+With Node.js 22 or later:
+
+```sh
+git clone https://github.com/PapiDee09/private-desk.git
+cd private-desk
+node app/server.mjs
+```
+
+Open [http://localhost:3105](http://localhost:3105) on the same computer, choose a workflow, and select **Run example**. The Node server binds to loopback by default. See [local port assignments](PORT-OWNERSHIP.md).
 
 ## Local AI mode
 
