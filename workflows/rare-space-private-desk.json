@@ -1,0 +1,134 @@
+{
+  "name": "Rare Space | Private Desk | Local AI Drafting Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rare-space-private-desk",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2a58eb01-3e20-4a44-9552-7baf338d29b1",
+      "name": "Incoming Demo Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "6fa6c3c1-cf3d-422f-a8be-5ced2b8e64f4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst allowed = ['legal', 'finance', 'scheduling'];\nif (!allowed.includes(body.scenario) || typeof body.document !== 'string') { throw new Error('Invalid synthetic demo request'); }\nconst prompt = `You are a PRIVATE, local-only assistant in a synthetic business demo. Write one concise, specific, professional response to the task. Use ONLY facts in the fabricated document; do not invent names, dates, or prices. Never claim you sent an email, modified a calendar, or gave final professional advice. Give a practical draft or summary with specific next steps.\nSCENARIO: ${body.scenario}\nTASK: ${String(body.task || '').slice(0, 750)}\nSYNTHETIC DOCUMENT:\n${body.document.slice(0, 3000)}\nRESPONSE:`;\nreturn [{json:{scenario:body.scenario,prompt}}];"
+      },
+      "id": "765fb9a9-2680-4ac9-b49d-41d9918f96f3",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        490,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'qwen2.5:0.5b', prompt: $json.prompt, stream: false, options: { temperature: 0.1, num_predict: 260 } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "26e8f421-360c-43d2-a950-2cf67a98cbf4",
+      "name": "Local Ollama Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        730,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Normalize Input').first().json;\nconst data = $input.first().json;\nconst generated = String(data.response || '').trim();\nif (!generated) throw new Error('No text returned from local Ollama');\nreturn [{json:{scenario:input.scenario,result:generated,steps:['Review the generated draft','Obtain human approval before any external action'],model:String(data.model || 'qwen2.5:0.5b'),requiresApproval:true,actionsTaken:[]}}];"
+      },
+      "id": "7b7af360-0cc2-4a62-9183-914f9ad9c2ab",
+      "name": "Format Draft for Approval",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        990,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      },
+      "id": "c0f4caf5-ae77-4551-8b3c-a2eb3d6683c4",
+      "name": "Return Draft (No Side Effects)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1240,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Incoming Demo Request": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Local Ollama Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Ollama Generation": {
+      "main": [
+        [
+          {
+            "node": "Format Draft for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Draft for Approval": {
+      "main": [
+        [
+          {
+            "node": "Return Draft (No Side Effects)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}
